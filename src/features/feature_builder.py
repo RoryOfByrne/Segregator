@@ -26,15 +26,24 @@ class FeatureBuilder():
     The vocabulary will be used to construct a vector whose length is the sum of the lengths of
     all the ngram vocabularies for that type {char, word}
     '''
-    def __init__(self, data_df, word_range, char_range):
+    def __init__(self, data_df, word_range, char_range, n_features):
         self.word_range = word_range
         self.char_range = char_range
+        self.n_features = n_features
         self.word_pres_vec, self.char_count_vec = self.build_vocabs(data_df)
-        self.hash_tfidf = self.build_hasher()
+        self.hash_tfidf = self.build_hash_vec()
 
-    def build_hasher(self):
-        # Perform an IDF normalization on the output of HashingVectorizer
-        hasher = HashingVectorizer(n_features=10000,
+    def build_hash_vec(self):
+        '''
+            Hashing Vectors are useful because they dont need to store a vocab
+            meaning that they require a lot less memory.
+            Hashing is NOT currently being used but it is implemented
+
+            More info:
+            http://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.HashingVectorizer.html
+        :return:
+        '''
+        hasher = HashingVectorizer(n_features=self.n_features,
                                    stop_words='english', alternate_sign=False,
                                    norm=None, binary=False)
         return make_pipeline(hasher, TfidfTransformer())
@@ -43,6 +52,7 @@ class FeatureBuilder():
         '''
         Use the dataframe to construct a `CountVectorizer` for char ngrams, and
         word-presence `CountVectorizer` for words.
+
         :param df_data:
         :return:
         '''
@@ -53,14 +63,14 @@ class FeatureBuilder():
         vocab_word = vocab_vect_word.vocabulary_
         # logger.debug("Word Vocab size: %s" % len(vocab_word))
 
-        word_pres_vec = CountVectorizer(ngram_range=self.word_range, max_features=5000,
+        word_pres_vec = CountVectorizer(ngram_range=self.word_range, max_features=self.n_features,
                                         vocabulary=vocab_word)
 
         vocab_vect_char = CountVectorizer(ngram_range=self.char_range, analyzer='char')
         vocab_vect_char.fit_transform(df_data['text'])
         vocab_char = vocab_vect_char.vocabulary_
 
-        char_count_vec = CountVectorizer(ngram_range=self.char_range, max_features=5000,
+        char_count_vec = CountVectorizer(ngram_range=self.char_range, max_features=self.n_features,
                                               vocabulary=vocab_char, analyzer='char', binary=False)
 
         logger.debug("Done in %0.3fs" % (time() - t0))
@@ -86,7 +96,7 @@ class FeatureBuilder():
         return sparse.csr_matrix(total_features)
 
     def featurize_all(self, samples):
-        logger.info("Building Features")
+        logger.info("Building Features...")
         t0 = time()
         s_data = samples.values.ravel()
 
@@ -96,9 +106,6 @@ class FeatureBuilder():
         logger.debug("Done in %0.3fs" % (time() - t0))
 
         return sparse.vstack(s_features)
-
-    def hash(self, text):
-        return self.hash_tfidf.fit_transform([text]).toarray()[0]
 
     def count_chars(self, text):
         '''

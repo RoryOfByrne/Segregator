@@ -1,4 +1,4 @@
-from optparse import OptionParser
+import argparse
 import pandas as pd
 import sys
 
@@ -13,29 +13,29 @@ logger = log.logger
 
 REAL_TWEETS_DIR = "/home/rory/projects/personify/data/real"
 
-# parse commandline arguments
-op = OptionParser()
-op.add_option("--lsa",
-              dest="lsa_components", type="int", default=3,
-              help="Preprocess documents with latent semantic analysis.")
-op.add_option("--n-features", type=int, default=10000,
-              help="Maximum number of features (dimensions)"
-                   " to extract from text.")
-op.add_option("--verbose",
-              action="store_true", dest="verbose", default=False,
-              help="Print progress reports inside k-means algorithm.")
+def parse_args():
+    '''Basic argument parser. Additions here need to be reflected in
+    config.settings also.'''
+    parser = argparse.ArgumentParser(description='''Cluster and Visualise Text Data''')
+    parser.add_argument('--lsa-components',
+                        help="Dimensionality for preprocessing documents with latent semantic analysis",
+                        type=int,
+                        default=3,
+                        metavar="LSA")
+    parser.add_argument('--n-features',
+                        help="Maximum number of features (dimensions) to extract from text",
+                        type=int,
+                        default=10000,
+                        metavar="N_FEATURES")
+    parser.add_argument("-c", "--config-file",
+                        help="Specify config file, default is config.json",
+                        default="config.json",
+                        metavar="FILE")
 
-def is_interactive():
-    return not hasattr(sys.modules['__main__'], '__file__')
+    return parser.parse_args()
 
-argv = [] if is_interactive() else sys.argv[1:]
-(opts, args) = op.parse_args(argv)
-if len(args) > 0:
-    op.error("this script takes no arguments.")
-    sys.exit(1)
-
-def all_tweets():
-    real = tweets.load_directory(REAL_TWEETS_DIR, "~")
+def all_tweets(dir, delim):
+    real = tweets.load_directory(dir, delim)
 
     return pd.concat(real)
 
@@ -45,7 +45,9 @@ def cluster():
 
     :return:
     '''
-    total_samples = tweets.all_tweets(REAL_TWEETS_DIR)
+    opts = parse_args()
+
+    total_samples = tweets.all_tweets(REAL_TWEETS_DIR, "~")
 
     # Filter unwanted rows and remove unwanted tokens
     total_samples = preprocessing.clean(total_samples)
@@ -56,7 +58,7 @@ def cluster():
 
     # Create features from samples
     X = total_samples.drop(['label'], axis=1)
-    feature_builder = FeatureBuilder(X, constants.WORD_N, constants.CHAR_N)
+    feature_builder = FeatureBuilder(X, constants.WORD_N, constants.CHAR_N, opts.n_features)
     X = feature_builder.featurize_all(X)
 
     logger.debug("n_samples: %d, n_features: %d" % X.shape)
