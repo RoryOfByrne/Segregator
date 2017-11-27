@@ -6,10 +6,11 @@ from time import time
 
 from features import sentence_features
 from util import log
+from features.base_builder import BaseFeatureBuilder
 
 logger = log.logger
 
-class FeatureBuilder():
+class NGramBuilder(BaseFeatureBuilder):
     '''
     This class will turn a piece of text into a vocabulary-dependent set of features
 
@@ -21,17 +22,18 @@ class FeatureBuilder():
                 "more text"
                 ...
 
-    The text in the `document` column is used to construct a vocabulary of ngram features for
+    The text in the `text` column is used to construct a vocabulary of ngram features for
     both characters and words.
     The vocabulary will be used to construct a vector whose length is the sum of the lengths of
     all the ngram vocabularies for that type {char, word}
     '''
     def __init__(self, data_df, word_range, char_range, n_features):
+        BaseFeatureBuilder.__init__(self)
         self.word_range = word_range
         self.char_range = char_range
         self.n_features = n_features
         self.word_pres_vec, self.char_count_vec = self.build_vocabs(data_df)
-        self.hash_tfidf = self.build_hash_vec()
+        self.hash_tfidf = self.build_hash_vec() # Unused currently
 
     def build_hash_vec(self):
         '''
@@ -50,8 +52,8 @@ class FeatureBuilder():
 
     def build_vocabs(self, df_data):
         '''
-        Use the dataframe to construct a `CountVectorizer` for char ngrams, and
-        word-presence `CountVectorizer` for words.
+            Use the dataframe to construct a `CountVectorizer` for char ngrams, and
+            word-presence `CountVectorizer` for words.
 
         :param df_data:
         :return:
@@ -82,7 +84,7 @@ class FeatureBuilder():
 
     def featurize(self, text):
         '''
-        Turn a piece of text into the set of features
+            Turn a piece of text into the set of features
         :param text:
         :return:
         '''
@@ -96,6 +98,12 @@ class FeatureBuilder():
         return sparse.csr_matrix(total_features)
 
     def featurize_all(self, samples):
+        '''
+            Turn all samples into features.
+            Samples is expected as a pandas DataFrame
+        :param samples:
+        :return:
+        '''
         logger.info("Building Features...")
         t0 = time()
         s_data = samples.values.ravel()
@@ -109,8 +117,8 @@ class FeatureBuilder():
 
     def count_chars(self, text):
         '''
-        Generate the ngram count vector, which is a vector of real values indicating
-        the count of a char ngram in the sample text
+            Generate the ngram count vector, which is a vector of real values indicating
+            the count of a char ngram in the sample text
         :param data:
         :return:
         '''
@@ -119,8 +127,8 @@ class FeatureBuilder():
 
     def word_presence(self, text):
         '''
-        Generate the word_presence_vector, which is a V long vector of binary values indicating
-        whether or not a word is present
+            Generate the word_presence_vector, which is a V long vector of binary values indicating
+            whether or not a word is present
         :param text_col:
         :return:
         '''

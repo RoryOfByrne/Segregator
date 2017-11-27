@@ -3,6 +3,13 @@ from util import log
 logger = log.logger
 
 class BaseFeatureBuilder():
+    '''
+        This is the base class for a feature builder. A feature builder should take text
+        data as input and return the numerical features which represent the text
+
+        Implement the `featurize_all()` method if you intend to pass a series of samples
+        Implement the `featurize()` method to convert a single string into a feature vector
+    '''
     def __init__(self):
         pass
 
