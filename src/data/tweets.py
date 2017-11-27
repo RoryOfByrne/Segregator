@@ -55,7 +55,7 @@ def load_directory(path, delim):
     return data
 
 
-def all_tweets():
-    real = load_directory(constants.REAL_TWEETS_DIR, constants.DELIMITER)
+def all_tweets(dir, delim):
+    real = load_directory(dir, delim)
 
     return pd.concat(real)

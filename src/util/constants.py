@@ -13,9 +13,6 @@ LOG_LEVEL = logging.DEBUG
 
 DELIMITER = "~"
 
-REAL_TWEETS_DIR = "/home/rory/projects/personify/data/real"
-FAKE_TWEETS_FILE = "/home/rory/projects/personify/data/fake/ronald_tweets.csv"
-
 ####################
 ###   FEATURES   ###
 ####################
