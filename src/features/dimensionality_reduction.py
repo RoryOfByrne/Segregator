@@ -8,6 +8,12 @@ from util import log
 logger = log.logger
 
 class LSA():
+    '''
+        This class is used to reduce the dimensionality of data.
+
+        TODO: Move the `comon_terms()` function out of here
+              because I don't think it's relevant to this class.
+    '''
     def __init__(self, n_components):
         self.n_components = n_components
         # Vectorizer results are normalized, which makes KMeans behave as
@@ -18,6 +24,11 @@ class LSA():
         self.lsa = make_pipeline(self.svd, self.normalizer)
 
     def reduce(self, X):
+        '''
+            Reduce the dimensionality of X and return it
+        :param X:
+        :return:
+        '''
         logger.info("Performing dimensionality reduction using LSA")
         t0 = time()
         out = self.lsa.fit_transform(X)
@@ -31,6 +42,13 @@ class LSA():
         return out
 
     def common_terms(self, model, vectorizer, true_k):
+        '''
+        Print some info about the most relevant words to each cluster
+        :param model:
+        :param vectorizer:
+        :param true_k:
+        :return:
+        '''
         original_space_centroids = self.svd.inverse_transform(model.model.cluster_centers_)
         order_centroids = original_space_centroids.argsort()[:, ::-1]
 
