@@ -106,11 +106,10 @@ class NGramBuilder(BaseFeatureBuilder):
         '''
         logger.info("Building Features...")
         t0 = time()
-        s_data = samples.values.ravel()
 
         vf = np.vectorize(lambda s: self.featurize(s))
 
-        s_features = vf(s_data)
+        s_features = vf(samples)
         logger.debug("Done in %0.3fs" % (time() - t0))
 
         return sparse.vstack(s_features)

@@ -24,6 +24,7 @@ def plot_cluster(model, X):
     ax.set_zlabel('')
     ax.dist = 12
 
+    logger.info("Showing graph...")
     plt.show()
 
 def plot_truth(X, real_labels):
