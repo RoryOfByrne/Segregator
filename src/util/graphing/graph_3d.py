@@ -8,7 +8,9 @@ from util import constants
 
 logger = util.log.logger
 
-def plot_cluster(model, X):
+# TODO: Change functions to take 'filename' cos these parameters are getting out of hand
+
+def plot_cluster(model, X, n, feature_model):
     fig = plt.figure(1, figsize=(4, 3), dpi=constants.DPI)
     ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
     labels = model.model.labels_
@@ -25,9 +27,12 @@ def plot_cluster(model, X):
     ax.dist = 12
 
     logger.info("Showing graph...")
-    plt.show()
+    # plt.show()
+    ax.azim = 200
+    ax.elev = 10
+    plt.savefig(''.join((constants.GRAPH_DIR, constants.CLUSTER_DIR, "%s-%s-%s.png" % (model.__str__(), feature_model, n))), dpi='figure')
 
-def plot_truth(X, real_labels):
+def plot_truth(X, real_labels, model_name, n, feature_model):
     fig = plt.figure(2, figsize=(4, 3), dpi=constants.DPI)
     ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
 
@@ -47,4 +52,7 @@ def plot_truth(X, real_labels):
     ax.w_yaxis.set_ticklabels([])
     ax.w_zaxis.set_ticklabels([])
 
+    ax.azim = 200
+    ax.elev = 10
     plt.show()
+    plt.savefig(''.join((constants.GRAPH_DIR, constants.CLUSTER_DIR, "%s-%s-%s-truth.png" % (model_name, feature_model, n))), dpi='figure')
