@@ -102,3 +102,6 @@ ENV/
 
 # Intellij
 .idea/*
+
+# Our Graphs
+graph/

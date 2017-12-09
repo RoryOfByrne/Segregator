@@ -4,10 +4,11 @@ from sklearn.preprocessing import Normalizer
 from time import time
 
 from util import log
+from features .base_builder import BaseFeatureBuilder
 
 logger = log.logger
 
-class LSA():
+class LSABuilder(BaseFeatureBuilder):
     '''
         This class is used to reduce the dimensionality of data.
 
@@ -15,6 +16,7 @@ class LSA():
               because I don't think it's relevant to this class.
     '''
     def __init__(self, n_components):
+        BaseFeatureBuilder.__init__(self)
         self.n_components = n_components
         # Vectorizer results are normalized, which makes KMeans behave as
         # spherical k-means for better results. Since LSA/SVD results are
@@ -23,7 +25,7 @@ class LSA():
         self.normalizer = Normalizer(copy=False)
         self.lsa = make_pipeline(self.svd, self.normalizer)
 
-    def reduce(self, X):
+    def featurize_all(self, samples):
         '''
             Reduce the dimensionality of X and return it
         :param X:
@@ -31,7 +33,7 @@ class LSA():
         '''
         logger.info("Performing dimensionality reduction using LSA")
         t0 = time()
-        out = self.lsa.fit_transform(X)
+        out = self.lsa.fit_transform(samples)
 
         logger.debug("Done in %fs" % (time() - t0))
 
@@ -40,6 +42,9 @@ class LSA():
             int(explained_variance * 100)))
 
         return out
+
+    def featutize(self, text):
+        raise NotImplementedError("Use featurize_all() instead")
 
     def common_terms(self, model, vectorizer, true_k):
         '''

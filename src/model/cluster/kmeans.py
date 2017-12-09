@@ -1,4 +1,4 @@
-from sklearn.cluster import MiniBatchKMeans
+from sklearn.cluster import KMeans
 from sklearn import metrics
 from sklearn.preprocessing import LabelEncoder
 from time import time
@@ -8,12 +8,14 @@ from util import log
 
 logger = log.logger
 
-class MB_KM(BaseModel):
-    def __init__(self, feature_builder, num_clusters, n_init):
+class KM(BaseModel):
+    def __init__(self, feature_builder, true_k):
         BaseModel.__init__(self, feature_builder)
         self.le = LabelEncoder()
-        self.model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=n_init,
-                         init_size=1000, batch_size=1000)
+        self.model = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init=1)
+
+    def __str__(self):
+        return "kmeans"
 
     def fit_labels(self, labels):
         logger.info("Fitting labels...")
