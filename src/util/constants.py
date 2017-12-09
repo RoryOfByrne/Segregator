@@ -54,6 +54,14 @@ ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 STOP_WORDS = list(nltk.corpus.stopwords.words('english'))
 
 ####################
+###### OUTPUT ######
+####################
+
+CLUSTER_DIR = "cluster/"
+CLASSIFY_DIR = "classify/"
+GRAPH_DIR = "graph/"
+
+####################
 ###   PERSONAL   ###
 ####################
 
