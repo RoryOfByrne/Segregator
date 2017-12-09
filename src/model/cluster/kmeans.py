@@ -14,6 +14,9 @@ class KM(BaseModel):
         self.le = LabelEncoder()
         self.model = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init=1)
 
+    def __str__(self):
+        return "kmeans"
+
     def fit_labels(self, labels):
         logger.info("Fitting labels...")
         self.le.fit(labels)

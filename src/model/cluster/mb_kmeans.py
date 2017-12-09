@@ -15,6 +15,9 @@ class MB_KM(BaseModel):
         self.model = MiniBatchKMeans(n_clusters=num_clusters, init='k-means++', n_init=n_init,
                          init_size=1000, batch_size=1000)
 
+    def __str__(self):
+        return "kmeans-minimatch"
+
     def fit_labels(self, labels):
         logger.info("Fitting labels...")
         self.le.fit(labels)

@@ -23,12 +23,27 @@ def parse_args():
     '''
     parser = argparse.ArgumentParser(description='''Cluster and Visualise Text Data''')
     parser.add_argument('--lsa-components',
-                        help="Dimensionality for preprocessing documents with latent semantic analysis",
+                        help="Dimensionality for Latent Semantic Analysis (ngram model)",
                         type=int,
                         default=3,
                         metavar="LSA")
+    parser.add_argument('--algorithms', '-a',
+                        help="Algorithms to use: 'cluster', 'classify', or 'both'",
+                        type=str,
+                        default='classify',
+                        metavar='ALG')
+    parser.add_argument('--num-samples',
+                        help='The number of samples to use from each csv file',
+                        type=int,
+                        default=100,
+                        metavar="NUM_SAMPLES")
+    parser.add_argument("--model", "-m",
+                        help="The model type - 'ngram' or 'style'",
+                        type=str,
+                        default="style",
+                        metavar="model")
     parser.add_argument('--n-features',
-                        help="Maximum number of features (dimensions) to extract from text",
+                        help="Maximum number of features for (ngram model)",
                         type=int,
                         default=5000,
                         metavar="N_FEATURES")
@@ -43,10 +58,6 @@ def parse_args():
 
     return parser.parse_args()
 
-def all_tweets(dir, delim):
-    real = tweets.load_directory(dir, delim)
-
-    return pd.concat(real)
 
 def classify(X, Y, x_new, y_new):
     '''
@@ -67,21 +78,25 @@ def classify(X, Y, x_new, y_new):
     classifier = SVM(fb)
     classifier.fit(X, Y)
 
-    # classifier.test(x_test, y_test)
     classifier.test(x_new, y_new)
-    # predictions = classifier.predict(X_test)
-    TRUMP = 0
-
-    # percent = (len([i for i in predictions if i == 0])/len(predictions))*100
-
-    # print("Accuracy: %f" % percent)
 
 def cluster(X, labels):
+    '''
+        Cluster the data using minibatch k-means
+    :param X:
+    :param labels:
+    :return:
+    '''
     # We know the real labels, so we can get the real number of unique labels
-    real_k = len(labels['label'].unique())
+    real_k = len(pd.Series(labels).unique())
+    logger.debug("Real k: %s" % real_k)
 
     # Construct features
-    feature_builder = NGramBuilder(X, constants.WORD_N, constants.CHAR_N, opts.n_features)
+    if(opts.model == 'ngram'):
+        feature_builder = NGramBuilder(X, constants.WORD_N, constants.CHAR_N, opts.n_features)
+    else:
+        feature_builder = StyleBuilder()
+
     X = feature_builder.featurize_all(X.values.ravel())
     logger.debug("n_samples: %d, n_features: %d" % X.shape)
 
@@ -92,13 +107,13 @@ def cluster(X, labels):
 
     # Create the model and fit the data
     model = MB_KM(feature_builder, real_k, 10)
-    model.fit(X, labels.values.reshape((-1)))
+    model.fit(X, labels.reshape((-1)))
 
     if(opts.produce_graphs):
-        graph_3d.plot_cluster(model, X)
-        graph_3d.plot_truth(X, labels.values.reshape((-1)))
+        graph_3d.plot_cluster(model, X, opts.num_samples, opts.model)
+        graph_3d.plot_truth(X, labels.reshape((-1)), model.__str__(), opts.num_samples, opts.model)
 
-    if(feature_builder.__class__ == NGramBuilder):
+    if(opts.model == 'ngram'):
         # This is only possible with vocabulary-based feature builders
         reducer.common_terms(model, model.feature_builder.word_pres_vec, real_k)
 
@@ -111,29 +126,37 @@ def main():
     '''
 
     logger.info("Produce graphs: %s" % opts.produce_graphs)
+    logger.info("Using model %s" % opts.model)
+    logger.info("Using algorithm(s): %s" % opts.algorithms)
 
-    total_samples = tweets.all_tweets(REAL_TWEETS_DIR, "~")
-
-    # # Add a column with labels mapped to numbers (0, 1, 2, etc.)
-    # total_samples['y'] = total_samples['label'].astype('category').cat.codes
-
-    fake_tweets = tweets.load_csv(constants.TRAINING_FILE, "~")
+    real_samples = tweets.all_tweets(REAL_TWEETS_DIR, "~", opts.num_samples)
+    fake_samples = tweets.load_csv(constants.TRAINING_FILE, "~", opts.num_samples)
 
     # Filter unwanted rows and remove unwanted tokens
-    total_samples = preprocessing.clean(total_samples)
-    fake_tweets = preprocessing.clean(fake_tweets)
+    real_samples = preprocessing.clean(real_samples)
+    fake_tweets = preprocessing.clean(fake_samples)
 
-    Y = total_samples[['label']]
+    # Map string labels to numbers (0, 1, 2, etc.)
+    y_numbers = real_samples['label'].astype('category').cat.codes.values
+    logger.debug("Number of coded labels: %s" % len(y_numbers))
+
+    Y = real_samples[['label']]
     y_test = fake_tweets[['label']]
     y_test['label'] = "realdonaldtrump"
-    logger.debug("Labels shape: (%s, %s)" % Y.shape)
 
     # Create features from samples
-    X = total_samples.drop(['label'], axis=1)
+    X = real_samples.drop(['label'], axis=1)
     x_test = fake_tweets.drop(['label'], axis=1)
 
-    classify(X, Y, x_test, y_test)
-    # cluster(X, labels)
+    if(opts.algorithms == 'both'):
+        classify(X, Y, x_test, y_test)
+        cluster(X, y_numbers)
+    elif(opts.algorithms == 'cluster'):
+        cluster(X, y_numbers)
+    elif(opts.algorithms == 'classify'):
+        classify(X, Y, x_test, y_test)
+    else:
+        raise NameError("Wrong algorithm selected via --algorithm")
 
 if __name__ == "__main__":
     # execute only if run as a script
