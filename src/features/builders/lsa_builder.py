@@ -25,6 +25,9 @@ class LSABuilder(BaseFeatureBuilder):
         self.normalizer = Normalizer(copy=False)
         self.lsa = make_pipeline(self.svd, self.normalizer)
 
+    def __str__(self):
+        return "lsa"
+
     def featurize_all(self, samples):
         '''
             Reduce the dimensionality of X and return it

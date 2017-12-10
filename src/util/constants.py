@@ -62,6 +62,8 @@ CLUSTER_DIR = "cluster/"
 CLASSIFY_DIR = "classify/"
 GRAPH_DIR = "graph/"
 
+DUMP = "dump/"
+
 ####################
 ###   PERSONAL   ###
 ####################
