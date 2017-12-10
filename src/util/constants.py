@@ -13,7 +13,8 @@ LOG_LEVEL = logging.DEBUG
 ################
 
 DELIMITER = "~"
-TRAINING_FILE = "/home/rory/projects/personify/data/fake/donaldonumber9_tweets.csv"
+REAL_TWEETS_DIR = "data/real"
+TRAINING_FILE = "data/fake/donaldonumber9_tweets.csv"
 
 ####################
 ###   FEATURES   ###

@@ -14,7 +14,6 @@ from util.graphing import graph_3d
 
 logger = log.logger
 
-REAL_TWEETS_DIR = "/home/rory/projects/personify/data/real"
 
 def parse_args():
     '''
@@ -55,6 +54,10 @@ def parse_args():
                         help="Specify config file, default is config.json",
                         default="config.json",
                         metavar="FILE")
+    parser.add_argument("--use-fake",
+                        help="Set this flag to test the classifier using our fake Tweets",
+                        action="store_true",
+                        default=False)
 
     return parser.parse_args()
 
@@ -66,19 +69,26 @@ def classify(X, Y, x_new, y_new):
     :param labels:
     :return:
     '''
-    fb = StyleBuilder()
+    if(opts.model == "ngram"):
+        fb = NGramBuilder(pd.concat((X, x_new)), constants.WORD_N, constants.CHAR_N, opts.n_features)
+    elif(opts.model == "style"):
+        fb = StyleBuilder()
+    else:
+        raise RuntimeError("Model %s is not valid" % opts.model)
 
-    X = fb.featurize_all(X.values.ravel())
-    Y = Y.values.reshape((-1))
-    x_new = fb.featurize_all(x_new.values.ravel())
-    y_new = y_new.values.reshape((-1))
+    X_train = fb.featurize_all(X.values.ravel())
+    Y_train = Y.values.reshape((-1))
 
-    # X_train, x_test, Y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+    if(opts.use_fake):
+        x_test = fb.featurize_all(x_new.values.ravel())
+        y_test = y_new.values.reshape((-1))
+    else:
+        X_train, x_test, Y_train, y_test = train_test_split(X_train, Y_train, test_size=0.2, random_state=42)
 
     classifier = SVM(fb)
-    classifier.fit(X, Y)
+    classifier.fit(X_train, Y_train)
 
-    classifier.test(x_new, y_new)
+    classifier.test(x_test, y_test)
 
 def cluster(X, labels):
     '''
@@ -129,7 +139,7 @@ def main():
     logger.info("Using model %s" % opts.model)
     logger.info("Using algorithm(s): %s" % opts.algorithms)
 
-    real_samples = tweets.all_tweets(REAL_TWEETS_DIR, "~", opts.num_samples)
+    real_samples = tweets.all_tweets(constants.REAL_TWEETS_DIR, "~", opts.num_samples)
     fake_samples = tweets.load_csv(constants.TRAINING_FILE, "~", opts.num_samples)
 
     # Filter unwanted rows and remove unwanted tokens

@@ -105,3 +105,6 @@ ENV/
 
 # Our Graphs
 graph/
+
+# Dataset
+data/

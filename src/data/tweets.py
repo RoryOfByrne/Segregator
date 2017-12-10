@@ -7,7 +7,10 @@ from util import log
 logger = log.logger
 
 def load_csv(file, delim, num_samples):
-    data = pd.read_csv(file, delimiter=delim).sample(num_samples)
+    data = pd.read_csv(file, delimiter=delim)
+    if(num_samples < data.shape[0]):
+        data = data.sample(num_samples)
+
     data = data[['text']]
 
     # Files are expected in the form name_tweets.csv
