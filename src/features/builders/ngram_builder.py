@@ -35,6 +35,9 @@ class NGramBuilder(BaseFeatureBuilder):
         self.word_pres_vec, self.char_count_vec = self.build_vocabs(data_df)
         self.hash_tfidf = self.build_hash_vec() # Unused currently
 
+    def __str__(self):
+        return "ngram_builder"
+
     def build_hash_vec(self):
         '''
             Hashing Vectors are useful because they dont need to store a vocab

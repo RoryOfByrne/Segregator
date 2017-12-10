@@ -1,9 +1,8 @@
-from util import log
+from util import log, dump, constants
 
 class BaseModel():
     def __init__(self, feature_builder):
         self.feature_builder = feature_builder
-        self.logger = log.logger
 
     def fit(self, X, labels):
         raise NotImplementedError
@@ -13,4 +12,7 @@ class BaseModel():
 
     def test(self, x_test, y_test):
         raise NotImplementedError
+
+    def save(self):
+        dump.to_dump(self, constants.DUMP + self.__str__() + "-" + "test" + ".pkl")
 

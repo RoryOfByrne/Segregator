@@ -28,6 +28,9 @@ class StyleBuilder(BaseFeatureBuilder):
     def __init__(self):
         BaseFeatureBuilder.__init__(self)
 
+    def __str__(self):
+        return "style_builder"
+
     def featurize(self, text):
         '''
             Convert a string into a sparse matrix of features

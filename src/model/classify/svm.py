@@ -1,4 +1,7 @@
 from model.base_model import BaseModel
+from util import log
+
+logger = log.logger
 
 from sklearn import svm
 
@@ -11,13 +14,15 @@ class SVM(BaseModel):
         self.model.fit(X, labels)
 
     def predict(self, predict_x):
-        self.logger.info("Predicting...")
+        logger.info("Predicting...")
         prediction = self.model.predict(predict_x)
-        # self.logger.info(prediction)
 
         return prediction
 
     def test(self, x_test, y_test):
-        self.logger.info("Testing")
+        logger.info("Testing")
         prediction = self.model.score(x_test, y_test)
-        self.logger.info("Testing score: %s" % prediction)
+        logger.info("Testing score: %s" % prediction)
+
+    def __str__(self):
+        return "svm"
